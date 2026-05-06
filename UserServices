@@ -1,1 +1,116 @@
+using Microsoft.Data.SqlClient;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace UserForm
+{
+    internal class UserService
+    {
+        private DbHelper db = new DbHelper();
+
+        // CREATE
+        public bool AddUser(User user)
+        {
+            try
+            {
+                using (SqlConnection conn = db.GetConnection())
+                {
+                    conn.Open();
+                    string query = "INSERT INTO Users (Name, Email, Age) VALUES (@Name, @Email, @Age)";
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Name", user.Name);
+                    cmd.Parameters.AddWithValue("@Email", user.Email);
+                    cmd.Parameters.AddWithValue("@Age", user.Age);
+
+                    int rows = cmd.ExecuteNonQuery();
+                    return rows > 0; // ✅ success
+                }
+            }
+            catch (Exception)
+            {
+                return false; // ❌ failed
+            }
+        }
+        // READ
+        public List<User> GetUsers()
+        {
+            List<User> users = new List<User>();
+
+            using (SqlConnection conn = db.GetConnection())
+            {
+                conn.Open();
+                string query = "SELECT * FROM Users";
+                SqlCommand cmd = new SqlCommand(query, conn);
+                SqlDataReader reader = cmd.ExecuteReader();
+
+                while (reader.Read())
+                {
+                    users.Add(new User
+                    {
+                        Id = (int)reader["Id"],
+                        Name = reader["Name"].ToString(),
+                        Email = reader["Email"].ToString(),
+                        Age = (int)reader["Age"]
+                    });
+                }
+            }
+
+            return users;
+        }
+
+        // UPDATE
+        public bool UpdateUser(User user)
+        {
+            try
+            {
+                using (SqlConnection conn = db.GetConnection())
+                {
+                    conn.Open();
+                    string query = "UPDATE Users SET Name=@Name, Email=@Email, Age=@Age WHERE Id=@Id";
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Id", user.Id);
+                    cmd.Parameters.AddWithValue("@Name", user.Name);
+                    cmd.Parameters.AddWithValue("@Email", user.Email);
+                    cmd.Parameters.AddWithValue("@Age", user.Age);
+
+                    int rows = cmd.ExecuteNonQuery();
+                    return rows > 0;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+
+        // DELETE
+        public bool DeleteUser(int id)
+        {
+            try
+            {
+                using (SqlConnection conn = db.GetConnection())
+                {
+                    conn.Open();
+                    string query = "DELETE FROM Users WHERE Id=@Id";
+                    SqlCommand cmd = new SqlCommand(query, conn);
+                    cmd.Parameters.AddWithValue("@Id", id);
+
+                    int rows = cmd.ExecuteNonQuery();
+                    return rows > 0;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+
+    }
+
+}
 
